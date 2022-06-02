@@ -1,12 +1,25 @@
 import sys
 from random import randint
 
+from PyQt5.QtWidgets import QApplication, QDialog
 
-class Jokenpo:
+from gui import *
+
+
+class Jokenpo(QDialog):
 
     def __init__(self):
+        super().__init__()
         self.game_active = True
         self.weapons = ("Rock", "Paper", "Scissors")
+        self.user_score = 0
+        self.computer_score = 0
+        self.ui = Ui_Dialog()
+        self.ui.setupUi(self)
+        self.ui.rock_button.clicked.connect(self.rock_chosen)
+        self.ui.paper_button.clicked.connect(self.paper_chosen)
+        self.ui.scissors_button.clicked.connect(self.scissors_chosen)
+        self.show()
 
     def run_game(self):
         while self.game_active:
@@ -37,31 +50,49 @@ class Jokenpo:
     def best_five_game(self):
         self._limited_game(5)
 
-    def _single_game(self):
-        user_key_press = input(
-            "Choose your weapon: (1)Rock (2)Paper (3)Scissors: ")
-        self._check_quit(user_key_press)
+    def rock_chosen(self):
+        self._single_game(0)
+
+    def paper_chosen(self):
+        self._single_game(1)
+
+    def scissors_chosen(self):
+        self._single_game(2)
+
+    def _single_game(self, choice):
+        # user_key_press = input(
+        #     "Choose your weapon: (1)Rock (2)Paper (3)Scissors: ")
+        # self._check_quit(user_key_press)
+        user_key_press = choice
 
         try:
-            user_choice = int(user_key_press) - 1
+            user_choice = int(user_key_press)
             computer_choice = randint(0, 2)
             result = user_choice - computer_choice
+            self.ui.your_weapon_label.setText(self.weapons[user_choice])
+            self.ui.foes_weapon_label.setText(self.weapons[computer_choice])
 
             if (result == 0):
                 self._chosen_weapons(user_choice, computer_choice)
+                self.ui.result_label.setText("It's a draw!")
                 print("\nIt's a draw!\n")
             elif (result == 1) or (result == -2):
                 self._chosen_weapons(user_choice, computer_choice)
+                self.ui.result_label.setText("You won!")
                 print("\nYou won!\n")
                 self.user_score += 1
             elif (result == -1) or (result == 2):
                 self._chosen_weapons(user_choice, computer_choice)
+                self.ui.result_label.setText("The computer won :(")
                 print("\nThe computer won :(\n")
                 self.computer_score += 1
         except:
             print(f"'{user_key_press}' is not a valid choice.")
-        print(
-            f"The present score is User: [{self.user_score}] and Computer: [{self.computer_score}]")
+        finally:
+            self.ui.label_your_score.setText(str(self.user_score))
+            self.ui.label_foe_score.setText(str(self.computer_score))
+            print(
+                f"The present score is User: [{self.user_score}] and Computer: [{self.computer_score}]")
 
     def _limited_game(self, max_matches):
         wins_needed = (max_matches//2) + 1
@@ -91,5 +122,7 @@ class Jokenpo:
 
 if __name__ == '__main__':
     # Make a game instance and run the game.
+    app = QApplication(sys.argv)
     jk = Jokenpo()
-    jk.run_game()
+    jk.show()
+    sys.exit(app.exec_())
